@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "cobot"
+version = "0.9.9"
+description = "A Discord bot for bullying those that are too active in a server."
+authors = ["m1stadev <adamhamdi31@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.scripts]
+cobot = "cobot.__main__:main"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+"discord.py" = "^2.3.2"
+click = "^8.1.7"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.10.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
