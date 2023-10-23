@@ -38,7 +38,7 @@ class COBot(commands.Bot):
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
 
-    async def get_role_from_db(self, guild: Guild) -> Optional[Role]:
+    async def db_get_role(self, guild: Guild) -> Optional[Role]:
         await self.db.execute('SELECT role FROM roles WHERE guild = ?', (guild.id,))
         data = await self.db.fetchone()
 
@@ -47,12 +47,28 @@ class COBot(commands.Bot):
 
         return guild.get_role(data[0])
 
+    async def db_update_role(self, guild: Guild, role: Role) -> None:
+        if role.guild != guild:
+            raise ValueError('Provided')
 
-#    async def update_role_db(self, guild: Guild, role: Role) -> None:
-#        await self.db.execute('UPDATE roles WHERE guild = ?', (guild.id,))
-#        data = await self.db.fetchone()
-#
-#        if len(data) == 0:
-#            return None
-#
-#        return guild.get_role(data[0])
+        await self.db.execute(
+            'UPDATE roles SET role = ? WHERE guild = ?',
+            (
+                role.id,
+                guild.id,
+            ),
+        )
+        await self.db.commit()
+
+    async def db_remove_role(self, guild: Guild) -> None:
+        await self.db.execute('DELETE FROM roles WHERE guild = ?', (guild.id,))
+        await self.db.commit()
+
+    async def db_add_role(self, guild: Guild, role: Role) -> None:
+        if role.guild != guild:
+            pass  # TODO: error
+
+        await self.bot.db.execute(
+            'INSERT INTO roles(guild, role) VALUES(?, ?)', (guild.id, role.id)
+        )
+        await self.bot.db.commit()
