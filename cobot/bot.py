@@ -49,7 +49,7 @@ class COBot(commands.Bot):
 
     async def db_update_role(self, guild: Guild, role: Role) -> None:
         if role.guild != guild:
-            raise ValueError('Provided')
+            pass #TODO: Error
 
         await self.db.execute(
             'UPDATE roles SET role = ? WHERE guild = ?',
