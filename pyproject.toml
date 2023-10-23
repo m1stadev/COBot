@@ -10,10 +10,13 @@ readme = "README.md"
 cobot = "cobot.__main__:main"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 "discord.py" = "^2.3.2"
-click = "^8.1.7"
 python-dotenv = "^1.0.0"
+aiopath = "^0.6"
+
+asqlite = {git = "https://github.com/Rapptz/asqlite.git"}
+jishaku = {git = "https://github.com/Gorialis/jishaku.git"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.10.0"

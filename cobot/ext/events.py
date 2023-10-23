@@ -13,15 +13,23 @@ class EventsCog(Cog):
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild) -> None:
         await self.bot.wait_until_ready()
-        for role in guild.roles:
-            if role.name.casefold() == 'chronically online':
-                await role.delete(
-                    reason="Removing any previous role created by COBot (that wasn't deleted for some reason?)"
-                )
+        try:
+            role = await guild.create_role(
+                name='Chronically Online', reason='Used by COBot.'
+            )
+        except discord.errors.Forbidden:  # Invited with incorrect permissions
+            await guild.leave()
 
-        await guild.create_role(
-            name='Chronically Online', reason='Required for COBot to function.'
+        await self.bot.db.execute(
+            'INSERT INTO roles(guild, role) VALUES(?, ?)', (guild.id, role.id)
         )
+        await self.bot.db.commit()
+
+    # TODO: Can't delete roles after bot leaves server, figure out some workaround (check guild logs for who kicked me & send a message saying to delete role?)
+    @Cog.listener()
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
+        await self.bot.wait_until_ready()
+        await self.bot.get_role_from_db(guild).delete(reason='Bot left server.')
 
     @Cog.listener()
     async def on_guild_role_delete(self, role: discord.Role) -> None:
@@ -30,25 +38,12 @@ class EventsCog(Cog):
             async for log in role.guild.audit_logs(
                 action=discord.AuditLogAction.role_delete, limit=1
             ):
-                with contextlib.suppress(discord.errors.HTTPException):
+                with contextlib.suppress(discord.errors.Forbidden):
                     await log.user.send("hey, don't do that")
+
                 await role.guild.create_role(
                     name='Chronically Online', reason='Required for COBot to function.'
                 )
-
-    @Cog.listener()
-    async def on_guild_role_create(self, role: discord.Role) -> None:
-        await self.bot.wait_until_ready()
-        if role.name.casefold() == 'chronically online':
-            async for log in role.guild.audit_logs(
-                action=discord.AuditLogAction.role_create, limit=1
-            ):
-                if log.user == self.bot.user:
-                    return
-
-                with contextlib.suppress(discord.errors.HTTPException):
-                    await log.user.send("hey, don't do that")
-                await role.delete()
 
 
 async def setup(bot: COBot) -> None:
