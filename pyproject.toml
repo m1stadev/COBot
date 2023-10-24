@@ -14,6 +14,7 @@ python = "^3.10"
 "discord.py" = "^2.3.2"
 python-dotenv = "^1.0.0"
 aiopath = "^0.6"
+coloredlogs = "^15.0.1"
 
 asqlite = {git = "https://github.com/Rapptz/asqlite.git"}
 jishaku = {git = "https://github.com/Gorialis/jishaku.git"}

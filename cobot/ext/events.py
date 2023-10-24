@@ -14,6 +14,10 @@ class EventsCog(Cog):
     async def on_guild_join(self, guild: discord.Guild) -> None:
         await self.bot.wait_until_ready()
 
+        # is this bad practice to do? eh, idc
+        self.bot.tree.copy_global_to(guild=guild)
+        await self.bot.tree.sync()
+
         try:
             role = await guild.create_role(
                 name='Chronically Online', reason='Used by COBot.'
@@ -27,7 +31,7 @@ class EventsCog(Cog):
     async def on_guild_remove(self, guild: discord.Guild) -> None:
         await self.bot.wait_until_ready()
 
-        #TODO: Can't delete roles after bot leaves server, figure out some workaround (check guild logs for who kicked me & send a message saying to delete role?)
+        # TODO: Can't delete roles after bot leaves server, figure out some workaround (check guild logs for who kicked me & send a message saying to delete role?)
         await self.bot.db_remove_role(guild)
 
     @Cog.listener()

@@ -1,7 +1,8 @@
+import contextlib
 from typing import Optional
 
 import asqlite
-from discord import AllowedMentions, Guild, Object, Role
+import discord
 from discord.ext import commands
 
 
@@ -16,9 +17,9 @@ class COBot(commands.Bot):
     ):
         super().__init__(
             commands.when_mentioned,
-            allowed_mentions=AllowedMentions.none(),
+            allowed_mentions=discord.AllowedMentions(roles=True),
             *args,
-            **kwargs
+            **kwargs,
         )
 
         self.db = db
@@ -34,22 +35,24 @@ class COBot(commands.Bot):
             await self.load_extension(ext)
 
         if self._admin_guild_id is not None:
-            guild = Object(id=self._admin_guild_id)
+            guild = discord.Object(id=self._admin_guild_id)
             self.tree.copy_global_to(guild=guild)
-            await self.tree.sync(guild=guild)
+            with contextlib.suppress(discord.errors.Forbidden):
+                await self.tree.sync(guild=guild)
 
-    async def db_get_role(self, guild: Guild) -> Optional[Role]:
-        await self.db.execute('SELECT role FROM roles WHERE guild = ?', (guild.id,))
-        data = await self.db.fetchone()
+    async def db_get_role(self, guild: discord.Guild) -> Optional[discord.Role]:
+        data = await self.db.fetchone(
+            'SELECT role FROM roles WHERE guild = ?', (guild.id,)
+        )
 
-        if len(data) == 0:
+        if data is None:
             return None
+        else:
+            return guild.get_role(data[0])
 
-        return guild.get_role(data[0])
-
-    async def db_update_role(self, guild: Guild, role: Role) -> None:
+    async def db_update_role(self, guild: discord.Guild, role: discord.Role) -> None:
         if role.guild != guild:
-            pass #TODO: Error
+            pass  # TODO: Error
 
         await self.db.execute(
             'UPDATE roles SET role = ? WHERE guild = ?',
@@ -60,15 +63,15 @@ class COBot(commands.Bot):
         )
         await self.db.commit()
 
-    async def db_remove_role(self, guild: Guild) -> None:
+    async def db_remove_role(self, guild: discord.Guild) -> None:
         await self.db.execute('DELETE FROM roles WHERE guild = ?', (guild.id,))
         await self.db.commit()
 
-    async def db_add_role(self, guild: Guild, role: Role) -> None:
+    async def db_add_role(self, guild: discord.Guild, role: discord.Role) -> None:
         if role.guild != guild:
             pass  # TODO: error
 
-        await self.bot.db.execute(
+        await self.db.execute(
             'INSERT INTO roles(guild, role) VALUES(?, ?)', (guild.id, role.id)
         )
-        await self.bot.db.commit()
+        await self.db.commit()

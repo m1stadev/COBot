@@ -1,7 +1,9 @@
 import asyncio
+import logging
 from os import getenv
 
 import asqlite
+import coloredlogs
 from aiopath import AsyncPath
 from discord import Intents
 from dotenv import load_dotenv
@@ -9,6 +11,9 @@ from dotenv import load_dotenv
 from cobot.bot import COBot
 
 load_dotenv()
+
+coloredlogs.install(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # TODO: Make this configurable (CLI option?)
 DB_PATH = 'roles.db'
@@ -30,10 +35,10 @@ async def _main():
         async with COBot(
             db=db,
             intents=intents,
-            # admin_guild_id=842189018523631658,
-            extensions=['cobot.ext.events'],
+            # admin_guild_id=729946499102015509,
+            extensions=['cobot.ext.events', 'cobot.ext.cmds'],
         ) as bot:
-            bot.start(token=getenv('COBOT_TOKEN'))
+            await bot.start(token=getenv('COBOT_TOKEN'))
 
 
 def main():
